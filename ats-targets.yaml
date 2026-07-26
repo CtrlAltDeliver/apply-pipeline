@@ -1,0 +1,1551 @@
+# Target companies for the discovery engine.
+# Each entry maps a company to its ATS + slug for the public JSON endpoint.
+# Edit this list freely — add the companies you care about, remove the rest.
+#
+# ATS endpoint patterns (discover.py builds these from the entry fields):
+#   greenhouse      → boards-api.greenhouse.io/v1/boards/<slug>/jobs
+#   lever           → api.lever.co/v0/postings/<slug>?mode=json
+#   ashby           → api.ashbyhq.com/posting-api/job-board/<slug>
+#   smartrecruiters → api.smartrecruiters.com/v1/companies/<slug>/postings (paginated)
+#   workday         → POST <tenant>.<wd_host>.myworkdayjobs.com/wday/cxs/<tenant>/<board>/jobs
+#                     requires extra fields: tenant, wd_host, board
+#
+# Status legend:
+#   verified — slug confirmed live with N jobs as of last probe (see job_count)
+#   todo     — company uses an ATS with no clean public JSON API or hasn't been
+#              probed yet. Manual notes on the careers URL included.
+#
+# Last verified: 2026-06-21
+
+# -----------------------------------------------------------------------------
+# Verified — public JSON endpoint working
+# -----------------------------------------------------------------------------
+
+- company: GitLab
+  ats: greenhouse
+  slug: gitlab
+  status: verified
+  job_count: 138
+
+- company: Dropbox
+  ats: greenhouse
+  slug: dropbox
+  status: verified
+  job_count: 56
+
+- company: Instacart
+  ats: greenhouse
+  slug: instacart
+  status: verified
+  job_count: 159
+
+- company: Affirm
+  ats: greenhouse
+  slug: affirm
+  status: verified
+  job_count: 158
+
+- company: Airbnb
+  ats: greenhouse
+  slug: airbnb
+  status: verified
+  job_count: 224
+
+- company: LinkedIn
+  ats: greenhouse
+  slug: linkedin
+  status: verified
+  job_count: 53
+
+- company: Hootsuite
+  ats: greenhouse
+  slug: hootsuite
+  status: verified
+  job_count: 17
+
+- company: Okta
+  ats: greenhouse
+  slug: okta
+  status: verified
+  job_count: 337
+
+- company: Brex
+  ats: greenhouse
+  slug: brex
+  status: verified
+  job_count: 235
+
+- company: Block (Square)
+  ats: greenhouse
+  slug: block
+  status: verified
+  job_count: 216
+
+- company: Grafana Labs
+  ats: greenhouse
+  slug: grafanalabs
+  status: verified
+  job_count: 104
+
+- company: Coinbase
+  ats: greenhouse
+  slug: coinbase
+  status: verified
+  job_count: 93
+
+- company: Reddit
+  ats: greenhouse
+  slug: reddit
+  status: verified
+  job_count: 149
+
+- company: Stripe
+  ats: greenhouse
+  slug: stripe
+  status: verified
+  job_count: 512
+
+- company: Twilio
+  ats: greenhouse
+  slug: twilio
+  status: verified
+  job_count: 164
+
+- company: Unity
+  ats: greenhouse
+  slug: unity3d
+  status: verified
+  job_count: 209
+
+- company: PointClickCare
+  ats: lever
+  slug: pointclickcare
+  status: verified
+  job_count: 82
+
+- company: Spotify
+  ats: lever
+  slug: spotify
+  status: verified
+  job_count: 145
+
+- company: Zapier
+  ats: ashby
+  slug: zapier
+  status: verified
+  job_count: 18
+
+- company: 1Password
+  ats: ashby
+  slug: 1password
+  status: verified
+  job_count: 60
+
+- company: Snowflake
+  ats: ashby
+  slug: snowflake
+  status: verified
+  job_count: 417
+
+- company: Wealthsimple
+  ats: ashby
+  slug: wealthsimple
+  status: verified
+  job_count: 35
+
+# -----------------------------------------------------------------------------
+# TODO — uses Workday / SmartRecruiters / iCIMS / custom ATS, no public JSON
+# Notes capture where the careers page actually lives so a future automation
+# can target the right host with a per-ATS scraper or fall back to SPA fetch.
+# -----------------------------------------------------------------------------
+
+- company: Apple
+  ats: custom
+  slug: ""
+  status: todo
+  notes: jobs.apple.com — custom ATS, search API exists but undocumented
+
+- company: Google
+  ats: custom
+  slug: ""
+  status: todo
+  notes: google.com/about/careers/applications/ — custom; consider Google Careers RSS
+
+- company: Microsoft
+  ats: custom
+  slug: ""
+  status: todo
+  notes: careers.microsoft.com — custom search; Workday-backed but proxied
+
+- company: Adobe
+  ats: workday
+  tenant: adobe
+  wd_host: wd5
+  board: external_experienced
+  status: verified
+  job_count: 1124
+
+- company: Autodesk
+  ats: workday
+  tenant: autodesk
+  wd_host: wd1
+  board: Ext
+  status: verified
+  job_count: 647
+
+- company: Nvidia
+  ats: workday
+  tenant: nvidia
+  wd_host: wd5
+  board: NVIDIAExternalCareerSite
+  status: verified
+  job_count: 2000
+
+- company: Uber
+  ats: custom
+  slug: ""
+  status: todo
+  notes: uber.com/careers — uses Workday in backend
+
+- company: AMD
+  ats: custom
+  slug: ""
+  status: todo
+  notes: careers.amd.com — confirmed custom ATS, NOT Workday (search results show no AMD listings on myworkdayjobs.com)
+
+- company: Netflix
+  ats: custom
+  slug: ""
+  status: todo
+  notes: jobs.netflix.com — custom ATS, no clean public JSON endpoint
+
+- company: Shopify
+  ats: custom
+  slug: ""
+  status: todo
+  notes: shopify.com/careers — custom ATS, no clean public JSON endpoint
+
+- company: eBay
+  ats: custom
+  slug: ""
+  status: todo
+  notes: jobs.ebayinc.com — custom
+
+- company: Paymentus
+  ats: custom
+  slug: ""
+  status: todo
+  notes: paymentus.com/careers — likely iCIMS or custom, manual check only
+
+- company: Docusign
+  ats: custom
+  slug: ""
+  status: todo
+  notes: careers.docusign.com — confirmed NOT on Workday (search returned only DocuSign-skill jobs at other companies). Custom ATS, manual check only.
+
+- company: OpenText
+  ats: custom
+  slug: ""
+  status: todo
+  notes: opentext.com/about/careers — confirmed NOT on Workday (search returned only OpenText-skill jobs at other companies). Custom ATS, manual check only.
+
+- company: Atlassian
+  ats: smartrecruiters
+  slug: Atlassian
+  status: todo
+  notes: SmartRecruiters slug returns 0 jobs — Atlassian appears to have migrated off the platform. Try their custom careers site at atlassian.com/company/careers/all-jobs.
+
+- company: Intuit
+  ats: custom
+  slug: ""
+  status: todo
+  notes: jobs.intuit.com — confirmed custom ATS, NOT Workday. Manual check only.
+
+- company: Ubisoft
+  ats: smartrecruiters
+  slug: Ubisoft2
+  status: verified
+  job_count: 214
+
+# Added 2026-07-08 via probe_smartrecruiters.py — SmartRecruiters has no public
+# global search (auth-gated), so coverage grows by verified per-company slugs.
+# Both boards are < the helper's 500-posting fetch cap, so fully covered.
+- company: Wise
+  ats: smartrecruiters
+  slug: Wise
+  status: verified
+  job_count: 379
+
+- company: Canva
+  ats: smartrecruiters
+  slug: Canva
+  status: verified
+  job_count: 213
+
+- company: Clio
+  ats: custom
+  slug: ""
+  status: todo
+  notes: clio.com/about/careers — check; likely Greenhouse-embedded under a non-obvious slug
+
+- company: Jane App
+  ats: lever
+  slug: janeapp
+  status: todo
+  notes: jobs.lever.co/janeapp — Lever (private board; API returned no public data on probe). Try GET https://jobs.lever.co/janeapp manually.
+
+- company: TikTok
+  ats: custom
+  slug: ""
+  status: todo
+  notes: careers.tiktok.com — ByteDance custom ATS
+
+- company: "Twitter/X"
+  ats: custom
+  slug: ""
+  status: todo
+  notes: careers.x.com — custom
+
+- company: Lululemon
+  ats: custom
+  slug: ""
+  status: todo
+  notes: corporate.lululemon.com/careers — confirmed custom ATS, NOT Workday. Manual check only.
+
+- company: Aritzia
+  ats: workday
+  tenant: aritzia
+  wd_host: wd3
+  board: External
+  status: verified
+  job_count: 474
+
+- company: Walmart
+  ats: workday
+  slug: ""
+  status: todo
+  notes: walmart.wd5.myworkdayjobs.com/WalmartExternal — config known but their Workday endpoint is hardened with anti-bot detection (returns 34KB HTML instead of JSON, even with full browser-spoof headers). Not automatable without a real browser. Skip; check manually if a role appears.
+
+- company: Best Buy
+  ats: workday
+  tenant: bestbuycanada
+  wd_host: wd3
+  board: BestBuyCA_Career
+  status: verified
+  job_count: 126
+
+- company: Loblaw
+  ats: workday
+  tenant: myview
+  wd_host: wd3
+  board: loblaw_careers
+  status: verified
+  job_count: 1
+
+- company: Westjet
+  ats: custom
+  slug: ""
+  status: todo
+  notes: westjet.com/en-ca/careers — confirmed custom ATS, NOT Workday. Manual check only.
+
+# -----------------------------------------------------------------------------
+# Batch 1 (rows 5-41 from Top 140 list) — added 2026-06-16
+# -----------------------------------------------------------------------------
+
+- company: Ada
+  ats: greenhouse
+  slug: ada18
+  status: verified
+  job_count: 9
+
+- company: BMO
+  ats: workday
+  tenant: bmo
+  wd_host: wd3
+  board: External
+  status: verified
+  job_count: 1269
+
+- company: Benevity
+  ats: ashby
+  slug: benevity
+  status: verified
+  job_count: 23
+
+- company: Canonical
+  ats: greenhouse
+  slug: canonical
+  status: verified
+  job_count: 296
+
+- company: Cloudflare
+  ats: greenhouse
+  slug: cloudflare
+  status: verified
+  job_count: 191
+
+- company: Cohere
+  ats: ashby
+  slug: cohere
+  status: verified
+  job_count: 126
+
+- company: Confluent
+  ats: ashby
+  slug: confluent
+  status: verified
+  job_count: 47
+
+- company: Coveo
+  ats: greenhouse
+  slug: coveoen
+  status: verified
+  job_count: 50
+
+- company: Databricks
+  ats: greenhouse
+  slug: databricks
+  status: verified
+  job_count: 765
+
+- company: Datadog
+  ats: greenhouse
+  slug: datadog
+  status: verified
+  job_count: 404
+
+- company: Digital Extremes
+  ats: greenhouse
+  slug: digitalextremes
+  status: verified
+  job_count: 3
+
+- company: Dapper Labs
+  ats: ashby
+  slug: dapper
+  status: verified
+  job_count: 23
+
+- company: Behaviour Interactive
+  ats: lever
+  slug: bhvr
+  status: verified
+  job_count: 38
+
+- company: DigitalOcean
+  ats: greenhouse
+  slug: digitalocean98
+  status: verified
+  job_count: 118
+
+- company: CIBC
+  ats: workday
+  tenant: cibc
+  wd_host: wd3
+  board: search
+  status: verified
+  job_count: 522
+
+# Batch 1 — custom ATSes / no public API
+
+- company: Amazon
+  ats: custom
+  slug: ""
+  status: todo
+  notes: amazon.jobs — custom ATS, manual check only
+
+- company: ApplyBoard
+  ats: custom
+  slug: ""
+  status: todo
+  notes: applyboard.com/careers — slug variants probed (applyboard, applyboard1, applyboardinc), all 0. Likely custom.
+
+- company: Automattic
+  ats: custom
+  slug: ""
+  status: todo
+  notes: automattic.com/work-with-us — custom hiring page (distributed-team-style)
+
+- company: Bell
+  ats: custom
+  slug: ""
+  status: todo
+  notes: jobs.bell.ca — custom Canadian-telco ATS
+
+- company: Bench
+  ats: custom
+  slug: ""
+  status: todo
+  notes: bench.co/careers/job — slug variants probed, all 0. Custom.
+
+- company: BioWare
+  ats: custom
+  slug: ""
+  status: todo
+  notes: bioware.com/careers — EA-owned, careers routed through ea.gr8people.com (Gr8People ATS)
+
+- company: BlackBerry
+  ats: custom
+  slug: ""
+  status: todo
+  notes: blackberry.com/us/en/careers/search — custom
+
+- company: Bloomberg
+  ats: custom
+  slug: ""
+  status: todo
+  notes: bloomberg.avature.net — Avature ATS, no public JSON adapter built
+
+- company: Cisco
+  ats: custom
+  slug: ""
+  status: todo
+  notes: jobs.cisco.com — custom backend; not Workday
+
+- company: DataStax
+  ats: custom
+  slug: ""
+  status: todo
+  notes: datastax.com/company/careers — slug variants probed, all 0. Custom.
+
+# -----------------------------------------------------------------------------
+# Batch 2 (rows 42-80 from Top 140 list, dropped Fidelity/Ericsson/Meta, added EQ Bank) — 2026-06-16
+# -----------------------------------------------------------------------------
+
+- company: Elastic
+  ats: greenhouse
+  slug: elastic
+  status: verified
+  job_count: 200
+
+- company: Faire
+  ats: greenhouse
+  slug: faire
+  status: verified
+  job_count: 65
+
+- company: Hopper
+  ats: ashby
+  slug: hopper
+  status: verified
+  job_count: 93
+
+- company: Intel
+  ats: workday
+  tenant: intel
+  wd_host: wd1
+  board: External
+  status: verified
+  job_count: 666
+
+- company: JetBrains
+  ats: greenhouse
+  slug: jetbrains
+  status: verified
+  job_count: 103
+
+- company: KOHO
+  ats: ashby
+  slug: koho
+  status: verified
+  job_count: 11
+
+- company: League
+  ats: greenhouse
+  slug: leagueinc
+  status: verified
+  job_count: 15
+
+- company: Lightspeed
+  ats: ashby
+  slug: lightspeed
+  status: verified
+  job_count: 4
+
+- company: MongoDB
+  ats: greenhouse
+  slug: mongodb
+  status: verified
+  job_count: 426
+
+- company: Mozilla
+  ats: greenhouse
+  slug: mozilla
+  status: verified
+  job_count: 56
+
+- company: Netlify
+  ats: greenhouse
+  slug: netlify
+  status: verified
+  job_count: 2
+
+- company: Notion
+  ats: ashby
+  slug: notion
+  status: verified
+  job_count: 150
+
+- company: DoorDash
+  ats: greenhouse
+  slug: doordashusa
+  status: verified
+  job_count: 445
+
+- company: Epic Games
+  ats: greenhouse
+  slug: epicgames
+  status: verified
+  job_count: 147
+
+# Batch 2 — custom / no-API
+
+- company: Doist
+  ats: custom
+  slug: ""
+  status: todo
+  notes: doist.com/careers — custom remote-first hiring page; no public ATS API.
+
+- company: DuckDuckGo
+  ats: custom
+  slug: ""
+  status: todo
+  notes: duckduckgo.com/hiring — custom; not on Greenhouse/Lever/Ashby.
+
+- company: EQ Bank
+  ats: custom
+  slug: ""
+  status: todo
+  notes: eqbank.ca / equitablebank.ca careers — no public ATS API found. Owned by Equitable Bank; consider checking Workday under a different tenant later.
+
+- company: Electronic Arts
+  ats: gr8people
+  slug: ""
+  status: todo
+  notes: ea.gr8people.com/jobs — Gr8People ATS, no public JSON adapter built. Manual check only.
+
+- company: GitHub
+  ats: custom
+  slug: ""
+  status: todo
+  notes: GitHub's Greenhouse board (boards.greenhouse.io/github) returns 404 via API — likely migrated. Use github.careers manually.
+
+- company: HashiCorp
+  ats: custom
+  slug: ""
+  status: todo
+  notes: hashicorp.com/en/careers — slug variants probed, all 0. Custom ATS.
+
+- company: Humi
+  ats: workable
+  slug: ""
+  status: todo
+  notes: apply.workable.com/humi/ — Workable ATS, no public JSON adapter built. Manual check only.
+
+- company: Kinaxis
+  ats: custom
+  slug: ""
+  status: todo
+  notes: kinaxis.com/en/careers/job-openings — no public ATS API found via search.
+
+- company: Motive Studio
+  ats: gr8people
+  slug: ""
+  status: todo
+  notes: ea.gr8people.com/jobs — EA-owned, same Gr8People ATS as parent EA.
+
+# -----------------------------------------------------------------------------
+# Batch 3 (rows 81-99 from Top 140 list, dropped Pinterest/SAP/Salesforce/ServiceNow) — 2026-06-16
+# -----------------------------------------------------------------------------
+
+- company: PagerDuty
+  ats: greenhouse
+  slug: pagerduty
+  status: verified
+  job_count: 45
+
+- company: Palantir
+  ats: lever
+  slug: palantir
+  status: verified
+  job_count: 235
+
+- company: Planet Labs
+  ats: greenhouse
+  slug: planetlabs
+  status: verified
+  job_count: 77
+
+- company: Red Hat
+  ats: workday
+  tenant: redhat
+  wd_host: wd5
+  board: Jobs
+  status: verified
+  job_count: 292
+
+- company: Riot Games
+  ats: greenhouse
+  slug: riotgames
+  status: verified
+  job_count: 165
+
+- company: Rockstar Games Toronto
+  ats: greenhouse
+  slug: rockstargames
+  status: verified
+  job_count: 76
+
+- company: Sentry
+  ats: ashby
+  slug: sentry
+  status: verified
+  job_count: 46
+
+# Batch 3 — custom / non-standard ATS
+
+- company: Nuvei
+  ats: workable
+  slug: ""
+  status: todo
+  notes: apply.workable.com/nuvei/ — Workable, no adapter built. Manual check only.
+
+- company: Qualcomm
+  ats: custom
+  slug: ""
+  status: todo
+  notes: 2026-06-21 — `site:myworkdayjobs.com qualcomm` returned 0 qualcomm.* hits. Confirmed NOT on Workday. Custom ATS at qualcomm.com/company/careers.
+
+- company: Rogers
+  ats: custom
+  slug: ""
+  status: todo
+  notes: jobs.rogers.com — confirmed NOT on Workday (Rogers Communications has no rogers.* hits on myworkdayjobs.com; only Rogers Behavioral Health on rogersbh.wd1 which is unrelated). Custom ATS.
+
+- company: Scotiabank
+  ats: successfactors
+  slug: ""
+  status: todo
+  notes: jobs.scotiabank.com — confirmed SuccessFactors (SAP-owned ATS), not Workday. No public JSON adapter built.
+
+- company: TELUS Communications
+  ats: custom
+  slug: ""
+  status: todo
+  notes: telus.com/en/about/careers — confirmed NOT on Workday for the core corp (only TELUS International and TELUS Health/Lifeworks are on Workday — both verified in Batch 7). Custom ATS.
+
+- company: Tesla
+  ats: custom
+  slug: ""
+  status: todo
+  notes: tesla.com/careers/search — custom ATS, not Greenhouse/Lever/Ashby.
+
+- company: The Coalition
+  ats: custom
+  slug: ""
+  status: todo
+  notes: thecoalitionstudio.com/careers — Microsoft-owned, custom careers page.
+
+- company: Thomson Reuters
+  ats: workday
+  tenant: thomsonreuters
+  wd_host: wd5
+  board: External_Career_Site
+  status: verified
+  job_count: 489
+
+- company: Toggl
+  ats: custom
+  slug: ""
+  status: todo
+  notes: toggl.com/jobs — custom ATS.
+
+- company: Top Hat
+  ats: custom
+  slug: ""
+  status: todo
+  notes: tophat.com/work-with-us/careers — custom Canadian-edtech ATS.
+
+- company: VMware
+  ats: custom
+  slug: ""
+  status: todo
+  notes: careers.broadcom.com/us/en/search-results — Broadcom careers (VMware-acquired). Custom search.
+
+# -----------------------------------------------------------------------------
+# Batch 4 (rows 100-141 from Top 140 list, dropped BlackBerry QNX/WB Games Montreal) — 2026-06-16
+# -----------------------------------------------------------------------------
+
+- company: AppDirect
+  ats: greenhouse
+  slug: appdirect
+  status: verified
+  job_count: 77
+
+- company: D2L
+  ats: greenhouse
+  slug: d2l
+  status: verified
+  job_count: 30
+
+- company: Vercel
+  ats: greenhouse
+  slug: vercel
+  status: verified
+  job_count: 74
+
+- company: Workday
+  ats: workday
+  tenant: workday
+  wd_host: wd5
+  board: Workday
+  status: verified
+  job_count: 371
+
+- company: Workleap
+  ats: greenhouse
+  slug: workleap
+  status: verified
+  job_count: 18
+
+# Batch 4 — custom / no-API
+
+- company: Charli AI
+  ats: custom
+  slug: ""
+  status: todo
+  notes: charli.ai/careers — small Vancouver AI startup, no public ATS API.
+
+- company: Dialogue Health
+  ats: custom
+  slug: ""
+  status: todo
+  notes: dialogue.co/en/careers — Canadian healthtech, slug variants probed, all 0.
+
+- company: Ecopia AI
+  ats: custom
+  slug: ""
+  status: todo
+  notes: ecopia.ai/careers — small Toronto AI startup, no public ATS API.
+
+- company: Galvanize
+  ats: custom
+  slug: ""
+  status: todo
+  notes: diligent.com/careers — acquired by Diligent; no Workday/Greenhouse hit.
+
+- company: MDA Space
+  ats: custom
+  slug: ""
+  status: todo
+  notes: mda.space/careers — Canadian aerospace, custom careers page.
+
+- company: Opencare
+  ats: custom
+  slug: ""
+  status: todo
+  notes: opencare.com/careers — small Toronto healthtech, no public ATS API.
+
+- company: Q4 Inc.
+  ats: custom
+  slug: ""
+  status: todo
+  notes: q4inc.com/careers — Toronto SaaS, no public ATS API hit.
+
+- company: Rakuten Kobo
+  ats: custom
+  slug: ""
+  status: todo
+  notes: corp.kobo.com/jobs — Rakuten subsidiary, custom ATS.
+
+- company: Sandvine
+  ats: custom
+  slug: ""
+  status: todo
+  notes: sandvine.com/company/careers — Waterloo network co, custom.
+
+- company: Tasktop
+  ats: custom
+  slug: ""
+  status: todo
+  notes: planview.com/company/careers — Planview subsidiary, custom.
+
+- company: Terramera
+  ats: custom
+  slug: ""
+  status: todo
+  notes: terramera.com/careers — small Vancouver agri-tech, custom.
+
+- company: Vidyard
+  ats: custom
+  slug: ""
+  status: todo
+  notes: vidyard.com/careers — Waterloo SaaS, no Greenhouse/Lever/Ashby hit.
+
+- company: Zynga
+  ats: custom
+  slug: ""
+  status: todo
+  notes: zynga.com/jobs — likely on EA Gr8People (Take-Two parent), custom.
+
+# -----------------------------------------------------------------------------
+# Batch 5 — broad expansion of Canada-friendly tech companies, probed via
+# probe_ats.py — added 2026-06-20.
+# Strategy: cast wider net for Canadian SaaS + US-headquartered companies known
+# to hire Canada-remote, on the three public-JSON ATS platforms.
+# 50/123 probed candidates were live; 49 added below (Pinterest excluded — it
+# was explicitly dropped in Batch 3).
+# -----------------------------------------------------------------------------
+
+- company: Amplitude
+  ats: greenhouse
+  slug: amplitude
+  status: verified
+  job_count: 52
+
+- company: ApplyDigital
+  ats: lever
+  slug: applydigital
+  status: verified
+  job_count: 22
+
+- company: Asana
+  ats: greenhouse
+  slug: asana
+  status: verified
+  job_count: 139
+
+- company: Bitwarden
+  ats: greenhouse
+  slug: bitwarden
+  status: verified
+  job_count: 7
+
+- company: Calendly
+  ats: greenhouse
+  slug: calendly
+  status: verified
+  job_count: 20
+
+- company: Carta
+  ats: greenhouse
+  slug: carta
+  status: verified
+  job_count: 51
+
+- company: Cayuse
+  ats: greenhouse
+  slug: cayuse
+  status: verified
+  job_count: 8
+
+- company: Chroma
+  ats: ashby
+  slug: trychroma
+  status: verified
+  job_count: 1
+
+- company: CockroachDB
+  ats: greenhouse
+  slug: cockroachlabs
+  status: verified
+  job_count: 36
+
+- company: Cursor (Anysphere)
+  ats: ashby
+  slug: cursor
+  status: verified
+  job_count: 104
+
+- company: Discord
+  ats: greenhouse
+  slug: discord
+  status: verified
+  job_count: 64
+
+- company: Duolingo
+  ats: greenhouse
+  slug: duolingo
+  status: verified
+  job_count: 60
+
+- company: Figma
+  ats: greenhouse
+  slug: figma
+  status: verified
+  job_count: 164
+
+- company: Fivetran
+  ats: greenhouse
+  slug: fivetran
+  status: verified
+  job_count: 112
+
+- company: Granola
+  ats: ashby
+  slug: granola
+  status: verified
+  job_count: 18
+
+- company: Greenhouse Software
+  ats: greenhouse
+  slug: greenhouse
+  status: verified
+  job_count: 17
+
+- company: Gusto
+  ats: greenhouse
+  slug: gusto
+  status: verified
+  job_count: 78
+
+- company: Hightouch
+  ats: ashby
+  slug: hightouch
+  status: verified
+  job_count: 1
+
+- company: Jobber
+  ats: ashby
+  slug: jobber
+  status: verified
+  job_count: 43
+
+- company: Khan Academy
+  ats: greenhouse
+  slug: khanacademy
+  status: verified
+  job_count: 22
+
+- company: LangChain
+  ats: ashby
+  slug: langchain
+  status: verified
+  job_count: 107
+
+- company: LastPass
+  ats: greenhouse
+  slug: lastpass
+  status: verified
+  job_count: 11
+
+- company: Later
+  ats: greenhouse
+  slug: later
+  status: verified
+  job_count: 71
+
+- company: Lattice
+  ats: greenhouse
+  slug: lattice
+  status: verified
+  job_count: 13
+
+- company: LaunchDarkly
+  ats: greenhouse
+  slug: launchdarkly
+  status: verified
+  job_count: 41
+
+- company: Linear
+  ats: ashby
+  slug: linear
+  status: verified
+  job_count: 26
+
+- company: Lyft
+  ats: greenhouse
+  slug: lyft
+  status: verified
+  job_count: 138
+
+- company: Mejuri
+  ats: greenhouse
+  slug: mejuri
+  status: verified
+  job_count: 132
+
+- company: Mercury
+  ats: greenhouse
+  slug: mercury
+  status: verified
+  job_count: 53
+
+- company: Mixpanel
+  ats: greenhouse
+  slug: mixpanel
+  status: verified
+  job_count: 33
+
+- company: Modal
+  ats: ashby
+  slug: modal
+  status: verified
+  job_count: 31
+
+- company: Monte Carlo
+  ats: ashby
+  slug: montecarlodata
+  status: verified
+  job_count: 7
+
+- company: OpenAI
+  ats: ashby
+  slug: openai
+  status: verified
+  job_count: 713
+
+- company: Pendo
+  ats: greenhouse
+  slug: pendo
+  status: verified
+  job_count: 43
+
+- company: Perplexity
+  ats: ashby
+  slug: perplexity
+  status: verified
+  job_count: 74
+
+- company: Pinecone
+  ats: ashby
+  slug: pinecone
+  status: verified
+  job_count: 8
+
+- company: PostHog
+  ats: ashby
+  slug: posthog
+  status: verified
+  job_count: 17
+
+- company: Ramp
+  ats: ashby
+  slug: ramp
+  status: verified
+  job_count: 112
+
+- company: Recursion
+  ats: greenhouse
+  slug: recursionpharmaceuticals
+  status: verified
+  job_count: 30
+
+- company: Replit
+  ats: ashby
+  slug: replit
+  status: verified
+  job_count: 99
+
+- company: Robinhood
+  ats: greenhouse
+  slug: robinhood
+  status: verified
+  job_count: 142
+
+- company: Roblox
+  ats: greenhouse
+  slug: roblox
+  status: verified
+  job_count: 232
+
+- company: Squarespace
+  ats: greenhouse
+  slug: squarespace
+  status: verified
+  job_count: 23
+
+- company: TextNow
+  ats: lever
+  slug: textnow
+  status: verified
+  job_count: 13
+
+- company: Toast
+  ats: greenhouse
+  slug: toast
+  status: verified
+  job_count: 274
+
+- company: Tucows
+  ats: greenhouse
+  slug: tucows
+  status: verified
+  job_count: 11
+
+- company: Vanta
+  ats: ashby
+  slug: vanta
+  status: verified
+  job_count: 106
+
+- company: Vellum
+  ats: ashby
+  slug: vellum
+  status: verified
+  job_count: 1
+
+- company: Webflow
+  ats: greenhouse
+  slug: webflow
+  status: verified
+  job_count: 21
+
+# -----------------------------------------------------------------------------
+# Batch 6 — Workday expansion, probed via probe_workday.py and
+# probe_workday_targeted.py — added 2026-06-20.
+# 9 verified additions. Most large companies returned HTTP 422 (URL valid,
+# request body schema rejected) — getting those would require WebFetching each
+# company's careers page to discover the required facet schema. See the failed
+# todos below for the high-value candidates that need that follow-up.
+# -----------------------------------------------------------------------------
+
+- company: Aviva Canada
+  ats: workday
+  tenant: aviva
+  wd_host: wd1
+  board: External
+  status: verified
+  job_count: 117
+
+- company: CAE
+  ats: workday
+  tenant: cae
+  wd_host: wd3
+  board: Career
+  status: verified
+  job_count: 297
+
+- company: Cenovus
+  ats: workday
+  tenant: cenovus
+  wd_host: wd3
+  board: Careers
+  status: verified
+  job_count: 19
+
+- company: Enbridge
+  ats: workday
+  tenant: enbridge
+  wd_host: wd3
+  board: Enbridge_Careers
+  status: verified
+  job_count: 49
+
+- company: HP
+  ats: workday
+  tenant: hp
+  wd_host: wd5
+  board: ExternalCareerSite
+  status: verified
+  job_count: 654
+
+- company: HPE
+  ats: workday
+  tenant: hpe
+  wd_host: wd5
+  board: Jobsathpe
+  status: verified
+  job_count: 1194
+
+- company: Novartis
+  ats: workday
+  tenant: novartis
+  wd_host: wd3
+  board: Novartis_Careers
+  status: verified
+  job_count: 906
+
+- company: Pfizer
+  ats: workday
+  tenant: pfizer
+  wd_host: wd1
+  board: PfizerCareers
+  status: verified
+  job_count: 507
+
+- company: VMware (Broadcom)
+  ats: workday
+  tenant: broadcom
+  wd_host: wd1
+  board: External_Career
+  status: verified
+  job_count: 342
+
+# Workday-protected (HTTP 422 on default body — tenant/wd_host correct, but
+# their Workday instance requires company-specific facet schema). Follow-up:
+# WebFetch the careers page, find the real searchFilter shape, then re-probe.
+# Listed as `status: todo` so future passes know not to re-guess from scratch.
+
+- company: National Bank
+  ats: custom
+  slug: ""
+  status: todo
+  notes: 2026-06-21 — `site:myworkdayjobs.com nbc` returned only NBC Tanzania (under ABSA), no National Bank of Canada hits. Confirmed NOT on Workday. Custom careers at jobs.nbc.ca.
+
+- company: Desjardins
+  ats: workday
+  tenant: desjardins
+  wd_host: wd10
+  board: Desjardins
+  status: verified
+  job_count: 259
+
+- company: Sobeys
+  ats: custom
+  slug: ""
+  status: todo
+  notes: 2026-06-21 — `site:myworkdayjobs.com sobeys` returned 0 hits. Confirmed NOT on Workday. Custom careers at careers.sobeys.com.
+
+- company: Indigo Books
+  ats: custom
+  slug: ""
+  status: todo
+  notes: 2026-06-21 — `site:myworkdayjobs.com indigo` returned 0 indigo.* hits. Confirmed NOT on Workday. Custom careers at careers.indigo.ca.
+
+- company: Stantec
+  ats: custom
+  slug: ""
+  status: todo
+  notes: 2026-06-21 — `site:myworkdayjobs.com stantec` returned 0 stantec.* hits. Confirmed NOT on Workday. Custom careers at stantec.com/en/careers.
+
+- company: Bombardier
+  ats: custom
+  slug: ""
+  status: todo
+  notes: 2026-06-21 — `site:myworkdayjobs.com bombardier` returned 0 hits. Confirmed NOT on Workday. Custom careers at careers.bombardier.com.
+
+- company: ServiceNow
+  ats: custom
+  slug: ""
+  status: todo
+  notes: 2026-06-21 — `site:myworkdayjobs.com servicenow` returned 0 servicenow.* hits. Confirmed NOT on Workday. Custom careers at servicenow.com/careers.html.
+
+- company: Oracle
+  ats: custom
+  slug: ""
+  status: todo
+  notes: 2026-06-21 — `site:myworkdayjobs.com oracle` returned 0 oracle.* hits. Confirmed NOT on Workday (Oracle owns Taleo and uses it). Custom careers at oracle.com/corporate/careers.
+
+- company: SAP
+  ats: successfactors
+  slug: ""
+  status: todo
+  notes: 2026-06-21 — `site:myworkdayjobs.com sap` returned 0 sap.* hits. Confirmed NOT on Workday. SAP uses its own SuccessFactors ATS (no public JSON adapter built).
+
+- company: IBM
+  ats: custom
+  slug: ""
+  status: todo
+  notes: 2026-06-21 — `site:myworkdayjobs.com ibm` returned 0 ibm.* hits. Confirmed NOT on Workday (likely Kenexa/custom). Custom careers at careers.ibm.com.
+
+- company: Johnson & Johnson
+  ats: workday
+  tenant: jj
+  wd_host: wd5
+  board: JJ
+  status: verified
+  job_count: 1759
+
+- company: Eli Lilly
+  ats: workday
+  tenant: lilly
+  wd_host: wd5
+  status: todo
+  notes: 2026-06-21 — confirmed on Workday at lilly.wd5.myworkdayjobs.com/en-US/LLY (board LLY, also CMP for campus). Static site works; cxs JSON POST still returns HTTP 422 even with browser headers (Origin/Referer/UA). Likely needs an additional anti-bot cookie or specific facet shape. Skip for now.
+
+# Confirmed NOT on Workday — careers hosted on a different platform.
+
+- company: Imperial Oil
+  ats: custom
+  slug: ""
+  status: todo
+  notes: imperialoil.ca/en-ca/company/careers — confirmed NOT on Workday (search returned no imperialoil.* myworkdayjobs.com results). Custom careers page.
+
+- company: ATCO
+  ats: custom
+  slug: ""
+  status: todo
+  notes: atco.com/en-ca/our-company/careers.html — confirmed NOT on Workday. Custom.
+
+- company: Cameco
+  ats: custom
+  slug: ""
+  status: todo
+  notes: cameco.com/careers — confirmed NOT on Workday. Custom.
+
+- company: Pembina Pipeline
+  ats: custom
+  slug: ""
+  status: todo
+  notes: careers.pembina.com — confirmed NOT on Workday (uses a separate careers.pembina.com domain). Custom.
+
+- company: Bell Canada
+  ats: custom
+  slug: ""
+  status: todo
+  notes: jobs.bell.ca — confirmed NOT on Workday (no bell.* hits on myworkdayjobs.com). Updates earlier Batch 1 todo.
+
+- company: Air Canada
+  ats: custom
+  slug: ""
+  status: todo
+  notes: careers.aircanada.com — confirmed NOT on Workday. Custom.
+
+- company: CN Rail
+  ats: custom
+  slug: ""
+  status: todo
+  notes: careers.cn.ca — confirmed NOT on Workday. Custom (likely Avature or similar).
+
+# -----------------------------------------------------------------------------
+# Batch 7 — Workday deep dive, probed via per-company WebSearch of
+# myworkdayjobs.com to discover real (tenant, wd_host, board) — 2026-06-20.
+# 18 new verified additions. The key insight: many large tenants reject the
+# default cxs body without Origin/Referer headers AND use non-obvious board
+# names (e.g. TD = TD_Bank_Careers, Manulife = MFCJH_Jobs, RBC = RBCGLOBAL1).
+# -----------------------------------------------------------------------------
+
+- company: Suncor
+  ats: workday
+  tenant: suncor
+  wd_host: wd1
+  board: Suncor_External
+  status: verified
+  job_count: 35
+
+- company: TC Energy
+  ats: workday
+  tenant: tcenergy
+  wd_host: wd3
+  board: CAREER_SITE_TC
+  status: verified
+  job_count: 46
+
+- company: AIMCo
+  ats: workday
+  tenant: aimco
+  wd_host: wd10
+  board: AIMCoCareers
+  status: verified
+  job_count: 3
+
+- company: Canadian Tire Corporation
+  ats: workday
+  tenant: canadiantirecorporation
+  wd_host: wd3
+  board: Enterprise_External_Careers_Site
+  status: verified
+  job_count: 120
+
+- company: Stelco
+  ats: workday
+  tenant: stelco
+  wd_host: wd3
+  board: Stelco
+  status: verified
+  job_count: 6
+
+- company: Salesforce
+  ats: workday
+  tenant: salesforce
+  wd_host: wd12
+  board: External_Career_Site
+  status: verified
+  job_count: 1462
+
+- company: Manulife
+  ats: workday
+  tenant: manulife
+  wd_host: wd3
+  board: MFCJH_Jobs
+  status: verified
+  job_count: 703
+
+- company: Sun Life
+  ats: workday
+  tenant: sunlife
+  wd_host: wd3
+  board: Experienced-Jobs
+  status: verified
+  job_count: 288
+
+- company: RBC
+  ats: workday
+  tenant: rbc
+  wd_host: wd3
+  board: RBCGLOBAL1
+  status: verified
+  job_count: 1521
+
+- company: TD
+  ats: workday
+  tenant: td
+  wd_host: wd3
+  board: TD_Bank_Careers
+  status: verified
+  job_count: 1593
+
+- company: TELUS International (Digital)
+  ats: workday
+  tenant: telusinternational
+  wd_host: wd3
+  board: External
+  status: verified
+  job_count: 55
+
+- company: TELUS Health (Lifeworks)
+  ats: workday
+  tenant: lifeworks
+  wd_host: wd3
+  board: External
+  status: verified
+  job_count: 187
+
+- company: NAV CANADA
+  ats: workday
+  tenant: navcanada
+  wd_host: wd10
+  board: NAV_Careers
+  status: verified
+  job_count: 20
+
+- company: OMERS
+  ats: workday
+  tenant: omers
+  wd_host: wd3
+  board: OMERS_External
+  status: verified
+  job_count: 72
+
+- company: Cogeco
+  ats: workday
+  tenant: cogeco
+  wd_host: wd3
+  board: Cogeco_Careers
+  status: verified
+  job_count: 58
+
+- company: Ciena
+  ats: workday
+  tenant: ciena
+  wd_host: wd5
+  board: Careers
+  status: verified
+  job_count: 158
+
+- company: Interac
+  ats: workday
+  tenant: interac
+  wd_host: wd3
+  board: Interac
+  status: verified
+  job_count: 52
+
+- company: Intact Financial
+  ats: workday
+  tenant: intactfc
+  wd_host: wd3
+  board: intactfc
+  status: verified
+  job_count: 167

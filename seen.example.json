@@ -1,0 +1,10 @@
+{
+  "_comment": "Copy to seen.json and maintain your own. Pass with --seen seen.json to dedupe discovery against roles you've already applied to or declined. seen.json is gitignored so your search history stays private.",
+  "applied_companies": [
+    "GitLab",
+    "Example Corp"
+  ],
+  "declined_roles": [
+    { "company": "Example Corp", "title": "Senior Program Manager, Marketing" }
+  ]
+}
