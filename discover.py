@@ -18,6 +18,7 @@ import argparse
 import concurrent.futures
 import datetime as dt
 import html
+import http.cookiejar
 import json
 import os
 import re
@@ -365,10 +366,93 @@ def _parse_workday(company, tenant, wd_host, board, body):
     return roles
 
 
+def _parse_hibob(company, slug, body):
+    """HiBob careers board — /api/job-ad returns {jobAdDetails: [...]}. Each job
+    carries HTML description/responsibilities/requirements/benefits, a
+    workspaceType (Remote/Hybrid/Onsite), site/country, publishedAt, and optional
+    payTransparency* comp fields. Salary, when present, usually lives in the
+    benefits HTML rather than the structured fields, so fall back to regex."""
+    try:
+        data = json.loads(body)
+    except (ValueError, TypeError):
+        return []
+    roles = []
+    for job in data.get("jobAdDetails", []):
+        location = (job.get("site") or job.get("country") or "").strip()
+        ws = (job.get("workspaceType") or "").strip()
+        if ws and ws.lower() not in location.lower():
+            location = f"{location} — {ws}" if location else ws
+
+        salary = ""
+        salary_parsed = None
+        smin = job.get("payTransparencyMinSalary")
+        smax = job.get("payTransparencyMaxSalary")
+        if smin and smax:
+            cur = (job.get("payTransparencySalaryCurrency") or "USD").upper()
+            factor = 1.0 if cur == "CAD" else config.USD_TO_CAD
+            try:
+                salary = f"{smin}-{smax} {cur}"
+                salary_parsed = {
+                    "min": int(_to_int(str(smin)) * factor),
+                    "max": int(_to_int(str(smax)) * factor),
+                    "currency": cur, "raw": salary,
+                }
+            except (ValueError, TypeError):
+                salary_parsed = None
+        benefits = job.get("benefits") or ""
+        content = _strip_html(" ".join(filter(None, [
+            job.get("description"), job.get("responsibilities"),
+            job.get("requirements"), benefits,
+        ])))[:6000]
+        if not salary_parsed:
+            salary_parsed = _parse_salary(_strip_html(benefits), content, location)
+            if salary_parsed:
+                salary = salary_parsed.get("raw", "")
+
+        # HiBob emits nanosecond precision (9 fractional digits); strptime's %f
+        # caps at 6, so trim the fraction or the freshness gate can't parse it.
+        pub = re.sub(r"(\.\d{6})\d+", r"\1", job.get("publishedAt", "") or "")
+
+        jid = job.get("id", "")
+        base = f"https://{slug}.careers.hibob.com/jobs"
+        roles.append({
+            "company": company, "ats": "hibob", "ats_slug": slug,
+            "title": job.get("title", ""), "location": location,
+            "url": f"{base}/{jid}" if jid else base,
+            "updated_at": pub,
+            "salary": salary, "salary_parsed": salary_parsed, "content": content,
+        })
+    return roles
+
+
+def _query_hibob(company, slug):
+    """HiBob's /api/job-ad is Cloudflare-gated: GET the public careers page first
+    to pick up the __cf_bm cookie, then fetch the JSON reusing it — without the
+    handshake the API returns 401. Still no login and no API key. `slug` is the
+    careers subdomain (e.g. 'evenergy' → evenergy.careers.hibob.com). Returns None
+    on a failed handshake, else the parsed (possibly empty) list."""
+    base = f"https://{slug}.careers.hibob.com"
+    cj = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+    opener.addheaders = [
+        ("User-Agent", config.USER_AGENT_BROWSER),
+        ("Accept", "application/json, text/plain, */*"),
+    ]
+    try:
+        opener.open(f"{base}/jobs", timeout=config.HTTP_TIMEOUT).read()
+        req = urllib.request.Request(f"{base}/api/job-ad", headers={"Referer": f"{base}/jobs"})
+        body = opener.open(req, timeout=config.HTTP_TIMEOUT).read().decode("utf-8", "ignore")
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError):
+        return None
+    return _parse_hibob(company, slug, body)
+
+
 def _query_company(entry):
     ats = entry.get("ats")
     slug = entry.get("slug")
     company = entry.get("company")
+    if ats == "hibob":
+        return (company, slug, ats, _query_hibob(company, slug))
     if ats == "greenhouse":
         body = _fetch(f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs?content=true")
         return (company, slug, ats, _parse_greenhouse(company, slug, body) if body else None)
@@ -575,6 +659,44 @@ def discover(max_age_days=None, seen_path=None):
     return {"candidates": candidates, "stats": stats}
 
 
+def _merge_linkedin_fallback(result, seen_path=None):
+    """Append best-effort LinkedIn-fallback candidates to a structured result.
+
+    Structured-first: the ATS pass in discover() is the source of truth. This
+    only adds roles the JSON APIs can't reach (companies not on a supported
+    ATS), deduped against what the ATS pass already found and the seen list,
+    and each carries source="linkedin_fallback" so it reads as verify-manually.
+    Deliberately defensive — a fallback failure must never break the core run.
+    """
+    try:
+        import linkedin_fallback
+        fb = linkedin_fallback.run()
+    except Exception as e:  # noqa: BLE001 — fallback is best-effort by contract
+        result["stats"]["linkedin_fallback_error"] = str(e)
+        return result
+
+    applied_companies, declined_roles = load_seen(seen_path)
+    have = {(normalize_company(c["company"]), normalize_title(c["title"]))
+            for c in result["candidates"]}
+    added = 0
+    for c in fb["candidates"]:
+        key = (normalize_company(c["company"]), normalize_title(c["title"]))
+        if key in have or key in declined_roles:
+            continue
+        if key[0] in applied_companies:
+            c["dedup_note"] = "company already applied — verify different role"
+        have.add(key)
+        result["candidates"].append(c)
+        added += 1
+
+    result["stats"]["linkedin_fallback"] = {**fb["stats"], "merged_new": added}
+    result["candidates"].sort(key=lambda r: (
+        config.RANK_ORDER.get(r["location_tier"], 9),
+        r["age_days"] if r["age_days"] is not None else 999,
+    ))
+    return result
+
+
 def main():
     p = argparse.ArgumentParser(description="Parallel ATS job-discovery engine.")
     p.add_argument("--pretty", action="store_true", help="human-readable summary")
@@ -582,9 +704,15 @@ def main():
                    help=f"max age in days (default {config.DEFAULT_MAX_AGE_DAYS})")
     p.add_argument("--seen", default=None,
                    help="path to a seen.json to dedupe against")
+    p.add_argument("--linkedin-fallback", action="store_true",
+                   help="also query the LinkedIn fallback source for companies "
+                        "not on a supported ATS (best-effort; needs manual "
+                        "verification — see linkedin_fallback.py)")
     args = p.parse_args()
 
     result = discover(max_age_days=args.max_age, seen_path=args.seen)
+    if args.linkedin_fallback:
+        result = _merge_linkedin_fallback(result, seen_path=args.seen)
     if args.pretty:
         s = result["stats"]
         print(f"Queried {s['companies_queried']} companies ({s['companies_failed']} failed)")

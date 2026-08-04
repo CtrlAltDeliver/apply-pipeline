@@ -9,6 +9,9 @@
 #   smartrecruiters → api.smartrecruiters.com/v1/companies/<slug>/postings (paginated)
 #   workday         → POST <tenant>.<wd_host>.myworkdayjobs.com/wday/cxs/<tenant>/<board>/jobs
 #                     requires extra fields: tenant, wd_host, board
+#   hibob           → <slug>.careers.hibob.com/api/job-ad  (slug = careers subdomain)
+#                     Cloudflare-gated: discover.py GETs /jobs first for the
+#                     __cf_bm cookie, then the JSON. Still no login, no API key.
 #
 # Status legend:
 #   verified — slug confirmed live with N jobs as of last probe (see job_count)
@@ -20,6 +23,12 @@
 # -----------------------------------------------------------------------------
 # Verified — public JSON endpoint working
 # -----------------------------------------------------------------------------
+
+- company: ev.energy
+  ats: hibob
+  slug: evenergy
+  status: verified
+  job_count: 1  # verified live 2026-08-04: Technical Program Manager (Remote-Canada)
 
 - company: GitLab
   ats: greenhouse

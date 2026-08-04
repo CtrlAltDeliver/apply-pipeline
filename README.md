@@ -2,7 +2,9 @@
 
 **A parallel job-discovery engine that queries 150+ company career sites at once, filters postings down to the handful actually worth your time, and prints them as ranked JSON.**
 
-In one real run: **151 companies queried → 16,345 live roles scanned → 8 candidates** that passed title, location, freshness, and dedup filters. No scraping, no login, no paid API — just the public JSON endpoints every major applicant-tracking system already exposes.
+In one real run: **151 companies queried → 16,345 live roles scanned → 8 candidates** that passed title, location, freshness, and dedup filters.
+
+The core is **structured-first**: no login, no paid API — just the public JSON endpoints every major applicant-tracking system already exposes. But not every company is on a supported ATS, and pretending otherwise would leave a blind spot. So there's a second, clearly-labelled layer: an **optional LinkedIn fallback** for the long tail the APIs can't reach. It's best-effort and flagged for manual verification — the structured data stays the source of truth, and the fallback only adds coverage it would otherwise miss. Handling the messy real-world tail honestly, rather than hiding it, is the point.
 
 One fine day I got fed up of seeing the same old roles on LinkedIn that LinkedIn thought I was a good match for but I disagreed. I also didn't have enough hours in the day to search jobs, check each of them individually and then apply. So, I did what a good TPM should do, I stood up a roadmap, identified the blockers and dependencies, and built a solution for the problem. I still judge every role and decide which one's worth my time.
 
@@ -10,13 +12,15 @@ One fine day I got fed up of seeing the same old roles on LinkedIn that LinkedIn
 
 ## Why it exists
 
-Job boards are noisy and stale; company career pages are fresh but there are hundreds of them. This tool goes straight to the source — the ATS JSON APIs behind Greenhouse, Lever, Ashby, SmartRecruiters, and Workday — and does the triage a person would do by hand, in about a minute:
+Job boards are noisy and stale; company career pages are fresh but there are hundreds of them. This tool goes straight to the source — the ATS JSON APIs behind Greenhouse, Lever, Ashby, SmartRecruiters, Workday, and HiBob — and does the triage a person would do by hand, in about a minute:
 
 1. **Fan out** across every company in `ats-targets.yaml`, in parallel.
-2. **Normalize** five different ATS payload shapes into one common role record.
+2. **Normalize** six different ATS payload shapes into one common role record.
 3. **Filter** by job title, location preference, and posting freshness.
 4. **Dedupe** against roles you've already applied to or passed on.
 5. **Rank and emit** the survivors as JSON (or a readable summary).
+
+Optionally, a **fallback layer** (`--linkedin-fallback`) then queries LinkedIn's logged-out search for the same title/location rules and merges in any roles at companies not on a supported ATS — deduped against the structured pass, and tagged so you know to verify them by hand.
 
 ## Quickstart
 
@@ -27,6 +31,8 @@ python3 discover.py --pretty              # human-readable summary
 python3 discover.py                       # full JSON on stdout
 python3 discover.py --max-age 14          # only roles posted in last 14 days
 python3 discover.py --seen seen.json      # skip roles you've already handled
+python3 discover.py --linkedin-fallback   # + best-effort LinkedIn tail (verify by hand)
+python3 linkedin_fallback.py --pretty     # run the fallback source on its own
 ```
 
 Requires Python 3.8+ and a single dependency (PyYAML). The discovery itself uses only the standard library.
@@ -40,10 +46,23 @@ Requires Python 3.8+ and a single dependency (PyYAML). The discovery itself uses
 | Location + salary | `config.py` + `discover.py` | Tier-based location classifier; currency-aware salary parsing with an optional floor |
 | Normalization | `normalize.py` | Canonicalizes titles and company names so dedup matches across source drift |
 | Dedup | `discover.py` | Optional `seen.json` of applied/declined roles |
+| Fallback (optional) | `linkedin_fallback.py` | Best-effort LinkedIn source for companies not on a supported ATS; reuses the engine's title/location/salary rules and role schema |
 
 ### Supported ATS platforms
 
-Greenhouse · Lever · Ashby · SmartRecruiters · Workday. Adding another is one adapter function that maps its payload to the common role dict.
+Greenhouse · Lever · Ashby · SmartRecruiters · Workday · HiBob. Adding another is one adapter function that maps its payload to the common role dict. HiBob shows the pattern extends past plain JSON endpoints too: it sits behind a Cloudflare bot-check, so its adapter does a quick page-then-JSON cookie handshake first — still no login and no API key.
+
+### The fallback layer (`linkedin_fallback.py`)
+
+Structured JSON is the right source *when it exists*. It doesn't for every company — plenty run on custom career pages or hardened ATSes with no clean public API, and the structured pass is simply blind to them. Rather than hide that gap, the engine can degrade to a best-effort source: LinkedIn's logged-out job search.
+
+It's kept separate and labelled a fallback on purpose, because it's a weaker kind of data:
+
+- It **scrapes guest-view HTML** instead of reading a structured API, so it breaks when LinkedIn changes its markup (the JD-body extractor has already had to chase one such change).
+- It **can't verify** a posting against the company's own careers page.
+- Salary and location are **parsed heuristically**, not read from structured fields.
+
+So the contract is explicit: **structured-first; fall back only for coverage the APIs can't reach, and treat that output as needing a human's verification.** To stay consistent, the fallback reuses `discover.py`'s own location classifier, salary parser, freshness check, title filter, and role-dict shape — it's a second *source*, not a second set of rules. Merged results are deduped against the structured pass and tagged `source: "linkedin_fallback"`. Enrichment is sorted by location tier before its cap, so the geographies you care about are never crowded out by the blank-location tail.
 
 ## Beyond discovery — the full pipeline
 
@@ -92,6 +111,7 @@ python3 title_filter.py           # the title ruleset's own 51 self-tests
 ```
 apply-pipeline/
 ├── discover.py          # the engine: fan-out, adapters, filters, ranking
+├── linkedin_fallback.py # optional best-effort source for the non-ATS tail
 ├── title_filter.py      # include/exclude title ruleset + self-tests
 ├── config.py            # all tunable knobs (freshness, salary, location)
 ├── normalize.py         # title/company canonicalization for dedup

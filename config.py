@@ -19,6 +19,13 @@ DEFAULT_MAX_AGE_DAYS = 30
 # --- HTTP ------------------------------------------------------------------
 HTTP_TIMEOUT = 8
 USER_AGENT = "Mozilla/5.0 (apply-pipeline)"
+# A full browser UA for the few ATS hosts that sit behind a bot-check and
+# reject the terse UA above (e.g. HiBob's Cloudflare page-then-JSON handshake).
+# Still no login and no API key — just a realistic User-Agent.
+USER_AGENT_BROWSER = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+)
 MAX_WORKERS = 12
 
 # --- Salary ----------------------------------------------------------------
