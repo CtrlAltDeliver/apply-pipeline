@@ -1,1 +1,5 @@
 PyYAML>=6.0
+# Only needed for the folder/tracker layer (dedup_check.py, purge_opportunities.py),
+# which read/write the .xlsx trackers. Core discovery (discover.py) uses only the
+# standard library.
+openpyxl>=3.0

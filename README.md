@@ -33,9 +33,14 @@ python3 discover.py --max-age 14          # only roles posted in last 14 days
 python3 discover.py --seen seen.json      # skip roles you've already handled
 python3 discover.py --linkedin-fallback   # + best-effort LinkedIn tail (verify by hand)
 python3 linkedin_fallback.py --pretty     # run the fallback source on its own
+
+# The folder/tracker layer (needs openpyxl; reads your .xlsx trackers + folders)
+python3 discover.py > candidates.json
+python3 dedup_check.py --candidates candidates.json --pretty   # drop applied/declined roles
+python3 purge_opportunities.py                                 # clean the opportunities sheet
 ```
 
-Requires Python 3.8+ and a single dependency (PyYAML). The discovery itself uses only the standard library.
+Discovery requires Python 3.8+ and only PyYAML (the discovery itself uses the standard library). The folder/tracker layer additionally needs `openpyxl` to read the `.xlsx` trackers — both are in `requirements.txt`.
 
 ## How it works
 
@@ -45,8 +50,10 @@ Requires Python 3.8+ and a single dependency (PyYAML). The discovery itself uses
 | Title filter | `title_filter.py` | Two-phase include/exclude regex ruleset, with 51 self-tests |
 | Location + salary | `config.py` + `discover.py` | Tier-based location classifier; currency-aware salary parsing with an optional floor |
 | Normalization | `normalize.py` | Canonicalizes titles and company names so dedup matches across source drift |
-| Dedup | `discover.py` | Optional `seen.json` of applied/declined roles |
+| Dedup (light) | `discover.py` | Optional `seen.json` of applied/declined roles |
 | Fallback (optional) | `linkedin_fallback.py` | Best-effort LinkedIn source for companies not on a supported ATS; reuses the engine's title/location/salary rules and role schema |
+| **Folder/tracker dedup** | `dedup_check.py` + `read_jds.py` | Classifies candidates against your real `.xlsx` trackers and on-disk company folders — URL / ATS-id / company+title layers — so an applied or declined role never resurfaces |
+| **Backlog purge** | `purge_opportunities.py` | Sweeps the opportunities sheet: moves declined rows to an append-only rejected sheet, drops applied rows, renumbers |
 
 ### Supported ATS platforms
 
@@ -64,17 +71,40 @@ It's kept separate and labelled a fallback on purpose, because it's a weaker kin
 
 So the contract is explicit: **structured-first; fall back only for coverage the APIs can't reach, and treat that output as needing a human's verification.** To stay consistent, the fallback reuses `discover.py`'s own location classifier, salary parser, freshness check, title filter, and role-dict shape — it's a second *source*, not a second set of rules. Merged results are deduped against the structured pass and tagged `source: "linkedin_fallback"`. Enrichment is sorted by location tier before its cap, so the geographies you care about are never crowded out by the blank-location tail.
 
-## Beyond discovery — the full pipeline
+## Beyond discovery — the folder/tracker layer
 
-Discovery is the part that generalizes, so it's the part I open-sourced. In my own setup it's stage one of a larger pipeline that runs the whole application lifecycle end to end. The later stages are coupled to private data — my application spreadsheet, my per-company document folders, my email inbox — so they aren't in this repo, but here's what they do:
+Discovery finds roles; keeping them straight is the other half of the job. These
+stages read your real state — a two-sheet opportunities spreadsheet, an
+application tracker, and one folder per company you've pursued — so a role never
+resurfaces once you've applied to it or reviewed and declined it. They ship here
+now (they used to be private):
 
-**Opportunity tracking.** Discovered roles land in a two-sheet spreadsheet: an active backlog and an append-only *rejected* sheet. When I mark a role not worth applying to, it moves to the rejected sheet with a date and a reason, so the same posting never resurfaces. Roles I've already applied to are dropped from the backlog entirely. (The `seen.json` in this repo is the stripped-down, shareable version of that memory.)
+**Folder/tracker dedup** (`dedup_check.py` + `read_jds.py`). Classifies every
+discovered candidate against three sources — your application tracker, the
+`Rejected opportunities` sheet, and the on-disk company folders — in confidence
+order: raw URL, then ATS-native job ID (the same role on a different URL surface),
+then company + normalized title (a repost under a fresh ID, or a careers URL vs.
+its LinkedIn mirror). A definite match is dropped; a same-company/different-role
+is surfaced with a "verify this is a different role" flag. This is the heavier
+sibling of the `seen.json` dedup built into `discover.py`.
 
-**Application folders as state.** Each role I pursue gets a folder holding its job description, my tailored resume, and a cover letter. A role starts in a `pending/` staging area; once the resume is in place, the folder graduates to the applied set and the tracker's status and date update automatically. A rejection moves the folder to a `rejected/` archive. The folder's location *is* the state — where a company sits on disk tells me exactly where it is in the funnel.
+**Backlog purge** (`purge_opportunities.py`). Sweeps the `Opportunities` sheet:
+rows you marked not-worth-applying move to the append-only `Rejected
+opportunities` sheet with a date and reason (so they never resurface), rows
+you've already applied to are dropped, and `S.No` is renumbered. Columns are
+mapped by name, so the two sheets can drift without misfiling a reason.
 
-**Inbox sweep.** On a schedule, the pipeline scans my inbox since the last run and reconciles it against the tracker. Auto-confirmations, auto-rejections, recruiter outreach, assessment and interview invites, and offers each map to a status change; a post-interview rejection both updates the status and archives the folder. When a role advances to an interview stage, that transition kicks off a company-research step so prep starts on its own. Every run records where it stopped, so the next one resumes exactly there and no email is processed twice.
+**Still agent-driven, not in this repo:** two stages stay in the
+[tpm-job-search-kit](https://github.com/CtrlAltDeliver/tpm-job-search-kit)
+`/apply` skill rather than as scripts here, because they need a live connector,
+not deterministic logic — the **inbox sweep** (reconciles your email against the
+tracker; needs Gmail) and **folders-as-state promotion** (a role graduates from a
+`Pending-applications/` staging area to applied once your resume is in its
+folder). The skill runs those by following instructions with your connected
+tools.
 
-Together these turn a scattered, manual search into a system with one source of truth: every role has a known state, and nothing falls through the cracks.
+Together these turn a scattered, manual search into a system with one source of
+truth: every role has a known state, and nothing falls through the cracks.
 
 ## Related repos
 
@@ -82,7 +112,7 @@ This engine is one part of a three-repo set:
 
 | Repo | What it is | How it fits |
 |---|---|---|
-| **[tpm-job-search-kit](https://github.com/CtrlAltDeliver/tpm-job-search-kit)** | The starter kit — folder scaffold, trackers, and an `/apply` skill that wraps this engine into the full end-to-end routine described in ["Beyond discovery"](#beyond-discovery--the-full-pipeline) above. | Start there if you want the whole pipeline, not just discovery. This repo drops into its `Job-applications-TPM/` folder. |
+| **[tpm-job-search-kit](https://github.com/CtrlAltDeliver/tpm-job-search-kit)** | The starter kit — folder scaffold, trackers, and an `/apply` skill that wraps this engine into the full end-to-end routine described in ["Beyond discovery"](#beyond-discovery--the-foldertracker-layer) above. | Start there if you want the whole pipeline, not just discovery. This repo drops into its `Job-applications-TPM/` folder. |
 | **[tpm-toolkit](https://github.com/CtrlAltDeliver/tpm-toolkit)** | The wider set of TPM slash-command skills — `score`, `tailor`, `companyresearch`, `referrals`, `interview-prep`. | The skills that act on the roles this engine finds. |
 
 ## Configuration
@@ -111,23 +141,30 @@ Copy `seen.example.json` to `seen.json` and keep it current:
 ## Tests
 
 ```bash
-python3 tests/test_filters.py     # or: pytest
-python3 title_filter.py           # the title ruleset's own 51 self-tests
+python3 tests/test_filters.py             # discovery-engine filters  (or: pytest)
+python3 tests/test_dedup_check.py         # folder/tracker dedup classification
+python3 tests/test_purge_opportunities.py # opportunities-sheet purge
+python3 title_filter.py                   # the title ruleset's own 51 self-tests
 ```
 
 ## Project layout
 
 ```
 apply-pipeline/
-├── discover.py          # the engine: fan-out, adapters, filters, ranking
-├── linkedin_fallback.py # optional best-effort source for the non-ATS tail
-├── title_filter.py      # include/exclude title ruleset + self-tests
-├── config.py            # all tunable knobs (freshness, salary, location)
-├── normalize.py         # title/company canonicalization for dedup
-├── ats-targets.yaml     # the companies to search
-├── seen.example.json    # template for your private applied/declined list
+├── discover.py             # the engine: fan-out, adapters, filters, ranking
+├── linkedin_fallback.py    # optional best-effort source for the non-ATS tail
+├── title_filter.py         # include/exclude title ruleset + self-tests
+├── config.py               # all tunable knobs (freshness, salary, location)
+├── normalize.py            # title/company canonicalization for dedup
+├── read_jds.py             # walk per-company folders → normalized titles
+├── dedup_check.py          # classify candidates vs. trackers + folders
+├── purge_opportunities.py  # sweep the opportunities sheet (needs openpyxl)
+├── ats-targets.yaml        # the companies to search
+├── seen.example.json       # template for your private applied/declined list
 └── tests/
-    └── test_filters.py
+    ├── test_filters.py
+    ├── test_dedup_check.py
+    └── test_purge_opportunities.py
 ```
 
 ## License
