@@ -76,6 +76,15 @@ Discovery is the part that generalizes, so it's the part I open-sourced. In my o
 
 Together these turn a scattered, manual search into a system with one source of truth: every role has a known state, and nothing falls through the cracks.
 
+## Related repos
+
+This engine is one part of a three-repo set:
+
+| Repo | What it is | How it fits |
+|---|---|---|
+| **[tpm-job-search-kit](https://github.com/CtrlAltDeliver/tpm-job-search-kit)** | The starter kit — folder scaffold, trackers, and an `/apply` skill that wraps this engine into the full end-to-end routine described in ["Beyond discovery"](#beyond-discovery--the-full-pipeline) above. | Start there if you want the whole pipeline, not just discovery. This repo drops into its `Job-applications-TPM/` folder. |
+| **[tpm-toolkit](https://github.com/CtrlAltDeliver/tpm-toolkit)** | The wider set of TPM slash-command skills — `score`, `tailor`, `companyresearch`, `referrals`, `interview-prep`. | The skills that act on the roles this engine finds. |
+
 ## Configuration
 
 All the knobs live in **`config.py`**:
