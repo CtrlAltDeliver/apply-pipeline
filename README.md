@@ -38,6 +38,7 @@ python3 linkedin_fallback.py --pretty     # run the fallback source on its own
 python3 discover.py > candidates.json
 python3 dedup_check.py --candidates candidates.json --pretty   # drop applied/declined roles
 python3 purge_opportunities.py                                 # clean the opportunities sheet
+python3 promote_pending.py                                     # graduate applied folders + write tracker
 ```
 
 Discovery requires Python 3.8+ and only PyYAML (the discovery itself uses the standard library). The folder/tracker layer additionally needs `openpyxl` to read the `.xlsx` trackers — both are in `requirements.txt`.
@@ -54,6 +55,7 @@ Discovery requires Python 3.8+ and only PyYAML (the discovery itself uses the st
 | Fallback (optional) | `linkedin_fallback.py` | Best-effort LinkedIn source for companies not on a supported ATS; reuses the engine's title/location/salary rules and role schema |
 | **Folder/tracker dedup** | `dedup_check.py` + `read_jds.py` | Classifies candidates against your real `.xlsx` trackers and on-disk company folders — URL / ATS-id / company+title layers — so an applied or declined role never resurfaces |
 | **Backlog purge** | `purge_opportunities.py` | Sweeps the opportunities sheet: moves declined rows to an append-only rejected sheet, drops applied rows, renumbers |
+| **Promotion** | `promote_pending.py` | Graduates a `Pending-applications/<Company>/` folder to applied once your resume lands in it, and writes the tracker row |
 
 ### Supported ATS platforms
 
@@ -94,14 +96,19 @@ opportunities` sheet with a date and reason (so they never resurface), rows
 you've already applied to are dropped, and `S.No` is renumbered. Columns are
 mapped by name, so the two sheets can drift without misfiling a reason.
 
-**Still agent-driven, not in this repo:** two stages stay in the
+**Folders-as-state promotion** (`promote_pending.py`). The folder's location is
+the state. A role you're preparing sits in `Pending-applications/<Company>/`;
+the moment you drop your resume into it, this graduates the folder to the applied
+set, writes an application-tracker row (`Date applied` = today, status applied,
+carrying `Title`/`Link` from the matching opportunities row), and flags that
+opportunities row `Applied = Y`. Deterministic file + spreadsheet ops.
+
+**Still agent-driven, not in this repo:** one stage stays in the
 [tpm-job-search-kit](https://github.com/CtrlAltDeliver/tpm-job-search-kit)
-`/apply` skill rather than as scripts here, because they need a live connector,
-not deterministic logic — the **inbox sweep** (reconciles your email against the
-tracker; needs Gmail) and **folders-as-state promotion** (a role graduates from a
-`Pending-applications/` staging area to applied once your resume is in its
-folder). The skill runs those by following instructions with your connected
-tools.
+`/apply` skill rather than as a script here, because it needs a live connector,
+not deterministic logic — the **inbox sweep** that reconciles your email against
+the tracker (auto-confirmations, rejections, recruiter/interview invites →
+status changes). The skill runs that with your connected Gmail.
 
 Together these turn a scattered, manual search into a system with one source of
 truth: every role has a known state, and nothing falls through the cracks.
@@ -144,6 +151,7 @@ Copy `seen.example.json` to `seen.json` and keep it current:
 python3 tests/test_filters.py             # discovery-engine filters  (or: pytest)
 python3 tests/test_dedup_check.py         # folder/tracker dedup classification
 python3 tests/test_purge_opportunities.py # opportunities-sheet purge
+python3 tests/test_promote_pending.py     # folder promotion + tracker write
 python3 title_filter.py                   # the title ruleset's own 51 self-tests
 ```
 
@@ -159,12 +167,14 @@ apply-pipeline/
 ├── read_jds.py             # walk per-company folders → normalized titles
 ├── dedup_check.py          # classify candidates vs. trackers + folders
 ├── purge_opportunities.py  # sweep the opportunities sheet (needs openpyxl)
+├── promote_pending.py      # graduate applied folders + write the tracker
 ├── ats-targets.yaml        # the companies to search
 ├── seen.example.json       # template for your private applied/declined list
 └── tests/
     ├── test_filters.py
     ├── test_dedup_check.py
-    └── test_purge_opportunities.py
+    ├── test_purge_opportunities.py
+    └── test_promote_pending.py
 ```
 
 ## License
